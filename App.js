@@ -1,12 +1,69 @@
-import { StatusBar } from 'expo-status-bar';
-import React from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import React, { useState } from 'react';
+import { StyleSheet, View, Button, Text } from 'react-native';
+import { InputPunto, Map, Modal, Panel, List } from './components';
 
 export default function App() {
+  const [puntos, setPuntos] = useState([]);
+  const [nombre, setNombre] = useState('');
+  const [puntoTemp, setPuntoTemp] = useState({});
+  const [visibilityFilter, setVisibilityFilter] = useState('new_punto');
+  const [visibility, setVisibility] = useState(false);
+  const [pointsFilter, setPointsFilter] = useState(true);
+
+  const togglePointFilter = () => setPointsFilter(!pointsFilter);
+
+  const handleLongPress = ({ nativeEvent }) => {
+    setVisibilityFilter('new_punto');
+    setPuntoTemp(nativeEvent.coordinate);
+    setVisibility(true);
+  };
+
+  const handleChangeText = (text) => {
+    setNombre(text);
+  };
+
+  const handleSubmit = () => {
+    const newPunto = { coordinate: puntoTemp, name: nombre };
+    setPuntos(puntos.concat(newPunto));
+    setVisibility(false);
+    setNombre('');
+  };
+
+  const handleLista = () => {
+    setVisibilityFilter('all_puntos');
+    setVisibility(true);
+  };
   return (
     <View style={styles.container}>
-      <Text>Open up App.js to start working on your app!</Text>
-      <StatusBar style="auto" />
+      <Map
+        onLongPress={handleLongPress}
+        puntos={puntos}
+        pointsFilter={pointsFilter}
+      />
+      <Panel
+        onPressLeft={handleLista}
+        textLeft={'Lista'}
+        togglePointFilter={togglePointFilter}
+      />
+      <Modal visibility={visibility}>
+        {visibilityFilter === 'new_punto' ? (
+          <View style={styles.form}>
+            <InputPunto
+              tittle="Nombre"
+              placeholder="Nombre del Punto"
+              onChangeText={handleChangeText}
+            ></InputPunto>
+            <Button title="Aceptar" onPress={handleSubmit} />
+          </View>
+        ) : (
+          <List
+            puntos={puntos}
+            closeModal={() => {
+              setVisibility(false);
+            }}
+          ></List>
+        )}
+      </Modal>
     </View>
   );
 }
@@ -14,8 +71,12 @@ export default function App() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fff',
     alignItems: 'center',
-    justifyContent: 'center',
+    backgroundColor: 'white',
+    justifyContent: 'flex-start',
+    paddingTop: 43,
+  },
+  form: {
+    padding: 20,
   },
 });
